@@ -47,12 +47,17 @@ class RegisterController extends Controller
     // ユーザー登録処理
     public function register(UserCreateRequest $request)
     {
-        User::create([
+        $user = User::create([
             "name" => $request->name,
             "email" => $request->email,
             "password" => Hash::make($request->password),
         ]);
-        return redirect()->route("memo.index");
+        logger()->debug($user);
+        $this->guard()->login($user);
+
+        // return redirect()->route("memo.index");
+        // return redirect(route("memo.index"));
+        return redirect("/memo");
     }
 
 
