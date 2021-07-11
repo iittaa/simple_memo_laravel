@@ -13,7 +13,8 @@ class MemoController extends Controller
         $memos =Memo::where("user_id", Auth::id())->orderBy("updated_at", "desc")->get();
         return view("/memo", [
             "name" => $this->getLoginUserName(),
-            "memos" => $memos
+            "memos" => $memos,
+            "select_memo" => session()->get("select_memo"),
         ]);
     }
 
@@ -28,7 +29,9 @@ class MemoController extends Controller
         return redirect()->route("memo.index");
     }
 
-    private function getLoginUserName() {
+    private function getLoginUserName()
+    {
+        // ログインしているユーザーを取得する
         $user = Auth::user();
         $name = "";
         if ($user) {
@@ -39,5 +42,34 @@ class MemoController extends Controller
             }
         }
         return $name;
+    }
+
+    public function select(Request $request)
+    {
+        $memo = Memo::find($request->id);
+        session()->put("select_memo", $memo);
+
+        return redirect()->route("memo.index");
+    }
+
+    public function update(Request $request)
+    {
+        $memo = Memo::find($request->edit_id);
+        $memo->title = $request->edit_title;
+        $memo->content = $request->edit_content;
+
+        if ($memo->update()) {
+            session()->put("select_memo", $memo);
+        } else {
+            session()->remove("select_memo");
+        }
+        return redirect()->route("memo.index");
+    }
+
+    public function delete(Request $request)
+    {
+        Memo::find($request->edit_id)->delete();
+        session()->remove("select_memo");
+        return redirect()->route("memo.index");
     }
 }
